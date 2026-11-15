@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f3e9">
+<meta name="description" content="An anonymized review of how you brief, steer, and verify AI work.">
+<title>How you work with AI</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="review.js"></script>
+<script defer src="tracker.js"></script>
+<script defer src="prompts.js"></script>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="mast"><span>WORK PATTERNS</span><nav aria-label="Dashboard sections"><a href="#progress-title">Progress</a><a href="#metrics-title">Review</a><a href="#notes-title">Prompts</a></nav></div>
+    <h1>How you work<br>with <em>AI</em></h1>
+    <p class="verse">Give the work a shape.<br>Let the draft show what it knows.<br>Check before it ships.</p>
+  </header>
+  <section aria-labelledby="review-title" class="judgment">
+    <div>
+      <h2 id="review-title">Baseline score</h2>
+      <p class="review-score">6.7 <span>out of 10</span></p>
+    </div>
+    <div class="score-copy">
+      <p>You give AI concrete inputs and steer the work through follow-ups. Explicit verification has the most room to improve.</p>
+      <p class="score-method"><strong>How it’s scored.</strong> Across 18 chats, each habit earns its weight multiplied by its share of chats. Concrete inputs carry 4 points (15/18), follow-ups 3 (14/18), and explicit verification 3 (6/18). The sum rounds to 6.7.</p>
+    </div>
+  </section>
+  <section aria-labelledby="progress-title" class="progress">
+    <h2 id="progress-title">Progress tracker</h2>
+    <p class="chart-note">Log one completed chat at a time. Dates and habit choices stay in this browser.</p>
+    <div class="progress-grid">
+      <form class="panel" id="habit-form">
+        <fieldset>
+          <legend>Which habits did you use?</legend>
+          <label class="habit-choice"><input type="checkbox" data-habit> <span>Gave a concrete source or input</span><span class="points">+4</span></label>
+          <label class="habit-choice"><input type="checkbox" data-habit> <span>Sent a follow-up to steer the work</span><span class="points">+3</span></label>
+          <label class="habit-choice"><input type="checkbox" data-habit> <span>Asked for a specific verification check</span><span class="points">+3</span></label>
+        </fieldset>
+        <p class="chart-note">Leave all unchecked to log a zero.</p>
+        <div class="actions tracker-actions"><button class="primary-action" id="save-log" type="submit" disabled>Log chat</button><button class="secondary-action" id="undo-log" type="button" disabled>Undo last log</button><output id="draft-score" aria-label="Selected chat score">0 / 10</output></div>
+        <p class="chart-note" id="log-status" role="status"></p>
+      </form>
+      <figure class="panel progress-panel">
+        <figcaption>Tracked score</figcaption>
+        <dl class="progress-stats" aria-live="polite">
+          <div><dd id="tracker-average">—</dd><dt>Average out of 10</dt></div>
+          <div><dd id="tracker-count">0</dd><dt>Chats logged</dt></div>
+        </dl>
+        <p id="trend-note" class="chart-note">Log a chat to start your score history.</p>
+        <div id="tracker-chart" hidden>
+          <div class="trend-plot">
+            <div class="trend-axis" aria-hidden="true"><span>10</span><span>0</span></div>
+            <ol id="tracker-bars" class="trend-bars" aria-label="Running average by chat"></ol>
+          </div>
+          <div class="trend-dates" aria-hidden="true"><span id="trend-first"></span><span id="trend-last"></span></div>
+        </div>
+      </figure>
+    </div>
+    <div id="habit-focus" class="panel" hidden>
+      <div class="focus-grid">
+        <div>
+          <h3>Habit rates</h3>
+          <ul id="focus-rates" class="bars"></ul>
+        </div>
+        <div class="focus-advice">
+          <h3>Next focus</h3>
+          <p id="focus-reason"></p>
+          <p id="focus-prompt"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="metrics-title" class="metrics">
+    <div class="section-head">
+      <h2 id="metrics-title">Observed habits</h2>
+      <div class="filters" role="group" aria-label="Filter by chat source">
+        <button type="button" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-filter="chatgpt" aria-pressed="false">ChatGPT</button>
+        <button type="button" data-filter="codex" aria-pressed="false">Codex</button>
+      </div>
+    </div>
+    <dl class="stats" aria-live="polite">
+      <div><dd id="chat-count">18</dd><dt>Work chats</dt></div>
+      <div><dd id="turn-count">77</dd><dt>User messages</dt></div>
+      <div><dd id="claude-count">3</dd><dt>Claude handoff chats</dt></div>
+    </dl>
+    <div class="charts">
+      <figure class="panel">
+        <figcaption>Habits across chats</figcaption>
+        <p class="chart-note" id="denominator">Each bar shows the share of 18 chats.</p>
+        <ul id="habit-bars" class="bars"></ul>
+        <p id="habit-detail" class="bar-detail" aria-live="polite"></p>
+      </figure>
+      <figure class="panel">
+        <figcaption>Back-and-forth</figcaption>
+        <p class="chart-note">Chats by number of user messages</p>
+        <ul id="depth-bars" class="bars"></ul>
+      </figure>
+    </div>
+  </section>
+  <section aria-labelledby="notes-title" class="notes">
+    <h2 id="notes-title">Prompt library</h2>
+    <div class="notes-grid">
+      <article><h3>Ground the first ask</h3><p>Name the output and point to one source. Ask AI to flag gaps in the evidence.</p></article>
+      <article><h3>Make one precise revision</h3><p>Say what to change, what to keep, and what to check again.</p></article>
+      <article><h3>Set a passing check</h3><p>Ask for a specific result, such as a form that submits on mobile. For consequential work, name the step that needs your approval.</p></article>
+    </div>
+    <div class="prompt-card panel">
+      <div id="prompt-groups" class="filters" role="group" aria-label="Prompt stage" hidden>
+        <button type="button" data-prompt-group="start" aria-pressed="true">Start</button>
+        <button type="button" data-prompt-group="refine" aria-pressed="false">Refine</button>
+        <button type="button" data-prompt-group="verify" aria-pressed="false">Verify</button>
+      </div>
+      <div class="prompt-layout">
+        <div id="prompt-options" role="group" aria-label="Prompt templates"></div>
+        <div class="prompt-preview">
+          <div class="section-head"><label id="prompt-title" for="prompt-template">Start with a brief</label><button class="secondary-action" id="copy-prompt" type="button">Copy prompt</button></div>
+          <p class="chart-note" id="prompt-when" aria-live="polite">Use this when the task has a clear deliverable.</p>
+          <textarea id="prompt-template" rows="8" readonly>Goal: Produce [deliverable] for [audience].
+Source: Use [file, link, or notes]. Flag missing facts.
+Check: Verify [pass/fail criterion]. Report what you checked.
+Stop at: [draft, review, or approval].</textarea>
+          <p class="chart-note" id="copy-status" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <details class="method">
+    <summary>Sample and scoring method</summary>
+    <p>I selected nine work chats each from accessible ChatGPT and Codex history. Codex examples cluster around one technical project. The sample is purposive and two Codex chats are represented by their latest ten turns. Counts cover visible user messages, including submitted choices, and behaviors are coded once per chat. Iteration counts any chat with two or more user messages.</p>
+    <p>Claude coverage comes from handoffs discussed in the sampled chats. Direct Claude conversations and outcomes were outside the available sample. The review uses aggregate counts and paraphrased work patterns.</p>
+  </details>
+</main>
+</body>
+</html>
