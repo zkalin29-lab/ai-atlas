@@ -77,13 +77,19 @@ List any blockers. Stop at the release recommendation so I can approve it.`,
   const options = document.getElementById('prompt-options');
   const field = document.getElementById('prompt-template');
   const copy = document.getElementById('copy-prompt');
+  const reset = document.getElementById('reset-prompt');
   const status = document.getElementById('copy-status');
   const card = groups.closest('.prompt-card');
+  const drafts = new Map();
+  let activePrompt;
 
   function selectPrompt(template, button) {
+    activePrompt = template;
     document.getElementById('prompt-title').textContent = template.title;
     document.getElementById('prompt-when').textContent = template.when;
-    field.value = template.body;
+    field.value = drafts.get(template) ?? template.body;
+    reset.disabled = !drafts.has(template);
+    copy.disabled = !field.value.trim();
     status.textContent = '';
     [...options.children].forEach(option => option.setAttribute('aria-pressed', String(option === button)));
   }
@@ -105,6 +111,21 @@ List any blockers. Stop at the release recommendation so I can approve it.`,
   }
 
   groupButtons.forEach(button => button.addEventListener('click', () => selectGroup(button.dataset.promptGroup)));
+  field.addEventListener('input', () => {
+    if (field.value === activePrompt.body) drafts.delete(activePrompt);
+    else drafts.set(activePrompt, field.value);
+    reset.disabled = !drafts.has(activePrompt);
+    copy.disabled = !field.value.trim();
+    status.textContent = '';
+  });
+  reset.addEventListener('click', () => {
+    drafts.delete(activePrompt);
+    field.value = activePrompt.body;
+    field.focus();
+    reset.disabled = true;
+    copy.disabled = false;
+    status.textContent = 'Template restored.';
+  });
   copy.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(field.value);
@@ -117,5 +138,6 @@ List any blockers. Stop at the release recommendation so I can approve it.`,
   });
 
   selectGroup('start');
+  field.readOnly = false;
   groups.hidden = false;
 }

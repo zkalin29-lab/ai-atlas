@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f6f3e9">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f3e9">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#18201d">
 <meta name="description" content="An anonymized review of how you brief, steer, and verify AI work.">
 <title>How you work with AI</title>
 <link rel="stylesheet" href="style.css">
@@ -12,7 +13,8 @@
 <script defer src="prompts.js"></script>
 </head>
 <body>
-<main>
+<a class="skip-link" href="#main-content">Skip to dashboard</a>
+<main id="main-content" tabindex="-1">
   <header class="hero">
     <div class="mast"><span>WORK PATTERNS</span><nav aria-label="Dashboard sections"><a href="#progress-title">Progress</a><a href="#metrics-title">Review</a><a href="#notes-title">Prompts</a></nav></div>
     <h1>How you work<br>with <em>AI</em></h1>
@@ -51,11 +53,23 @@
         </dl>
         <p id="trend-note" class="chart-note">Log a chat to start your score history.</p>
         <div id="tracker-chart" hidden>
+          <div class="trend-controls">
+            <label for="trend-mode">Chart view</label>
+            <select id="trend-mode">
+              <option value="average">Running average</option>
+              <option value="score">Individual scores</option>
+            </select>
+          </div>
           <div class="trend-plot">
             <div class="trend-axis" aria-hidden="true"><span>10</span><span>0</span></div>
-            <ol id="tracker-bars" class="trend-bars" aria-label="Running average by chat"></ol>
+            <ol id="tracker-bars" class="trend-bars" aria-label="Recent chat scores"></ol>
           </div>
           <div class="trend-dates" aria-hidden="true"><span id="trend-first"></span><span id="trend-last"></span></div>
+          <div class="trend-inspect">
+            <label for="trend-position">Inspect a chat</label>
+            <input id="trend-position" type="range" min="1" max="1" value="1" step="1">
+            <p class="chart-note" id="trend-selection"></p>
+          </div>
         </div>
       </figure>
     </div>
@@ -117,9 +131,10 @@
       <div class="prompt-layout">
         <div id="prompt-options" role="group" aria-label="Prompt templates"></div>
         <div class="prompt-preview">
-          <div class="section-head"><label id="prompt-title" for="prompt-template">Start with a brief</label><button class="secondary-action" id="copy-prompt" type="button">Copy prompt</button></div>
+          <div class="section-head"><label id="prompt-title" for="prompt-template">Start with a brief</label><div class="prompt-actions"><button class="secondary-action" id="reset-prompt" type="button" disabled>Reset</button><button class="primary-action" id="copy-prompt" type="button" disabled>Copy prompt</button></div></div>
           <p class="chart-note" id="prompt-when" aria-live="polite">Use this when the task has a clear deliverable.</p>
-          <textarea id="prompt-template" rows="8" readonly>Goal: Produce [deliverable] for [audience].
+          <p class="chart-note" id="prompt-edit-note">Replace the brackets before copying. Draft edits stay on this page until you reload.</p>
+          <textarea id="prompt-template" aria-describedby="prompt-edit-note" rows="8" readonly>Goal: Produce [deliverable] for [audience].
 Source: Use [file, link, or notes]. Flag missing facts.
 Check: Verify [pass/fail criterion]. Report what you checked.
 Stop at: [draft, review, or approval].</textarea>
