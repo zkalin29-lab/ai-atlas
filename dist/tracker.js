@@ -14,9 +14,13 @@
   const chart = document.getElementById('tracker-chart');
   const bars = document.getElementById('tracker-bars');
   const trendNote = document.getElementById('trend-note');
+  const trendMode = document.getElementById('trend-mode');
+  const trendPosition = document.getElementById('trend-position');
+  const trendSelection = document.getElementById('trend-selection');
   const draftScore = document.getElementById('draft-score');
   const dateLabel = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' });
   let logs = [];
+  let chartPoints = [];
 
   function readLogs() {
     const data = JSON.parse(localStorage.getItem(storageKey) ?? '[]');
@@ -74,39 +78,62 @@
     prompt.textContent = habit.prompt;
   }
 
+  function inspectChat() {
+    const selected = trendPosition.valueAsNumber - 1;
+    const point = chartPoints[selected];
+    if (!point) return;
+    const date = dateLabel.format(new Date(point.date));
+    const detail = `Chat ${point.number} · ${date} · ${point.score}/10 for this chat · ${point.average.toFixed(1)}/10 running average`;
+    trendSelection.textContent = detail;
+    trendPosition.setAttribute('aria-valuetext', detail);
+    [...bars.children].forEach((row, index) => row.classList.toggle('is-selected', index === selected));
+  }
+
+  function renderTrend() {
+    const isAverage = trendMode.value === 'average';
+    bars.setAttribute('aria-label', isAverage ? 'Running average by chat' : 'Individual chat scores');
+    bars.replaceChildren(...chartPoints.map(point => {
+      const row = document.createElement('li');
+      const label = document.createElement('span');
+      const fill = document.createElement('span');
+      const value = isAverage ? point.average : point.score;
+      row.title = `Chat ${point.number} · ${dateLabel.format(new Date(point.date))} · ${value.toFixed(1)}/10`;
+      label.className = 'sr-only';
+      label.textContent = row.title;
+      fill.className = 'trend-fill';
+      fill.style.setProperty('--bar-height', `${value * 10}%`);
+      fill.setAttribute('aria-hidden', 'true');
+      row.append(label, fill);
+      return row;
+    }));
+    inspectChat();
+  }
+
   function renderProgress() {
     let total = 0;
     const history = logs.map((entry, index) => {
-      total += score(entry);
-      return { date: entry.date, number: index + 1, average: total / (index + 1) };
+      const value = score(entry);
+      total += value;
+      return { date: entry.date, number: index + 1, score: value, average: total / (index + 1) };
     });
-    const recent = history.slice(-12);
-    const latest = recent.at(-1);
+    chartPoints = history.slice(-12);
+    const latest = chartPoints.at(-1);
     document.getElementById('tracker-average').textContent = latest ? latest.average.toFixed(1) : '—';
     document.getElementById('tracker-count').textContent = logs.length;
     chart.hidden = !latest;
     undo.disabled = save.disabled || !latest;
     trendNote.textContent = latest
-      ? 'Running average after each chat. Shows up to 12 recent logs.'
+      ? 'Last 12 chats. The running average includes all logged chats.'
       : 'Log a chat to start your score history.';
-    bars.replaceChildren(...recent.map(point => {
-      const row = document.createElement('li');
-      const label = document.createElement('span');
-      const fill = document.createElement('span');
-      row.title = `Chat ${point.number} · ${dateLabel.format(new Date(point.date))} · ${point.average.toFixed(1)}/10`;
-      label.className = 'sr-only';
-      label.textContent = row.title;
-      fill.className = 'trend-fill';
-      fill.style.setProperty('--bar-height', `${point.average * 10}%`);
-      fill.setAttribute('aria-hidden', 'true');
-      row.append(label, fill);
-      return row;
-    }));
-    const firstDate = recent[0]?.date;
+    const firstDate = chartPoints[0]?.date;
     document.getElementById('trend-first').textContent = firstDate ? dateLabel.format(new Date(firstDate)) : '';
     document.getElementById('trend-last').textContent = latest && latest.date !== firstDate
       ? dateLabel.format(new Date(latest.date))
       : '';
+    trendPosition.max = String(chartPoints.length || 1);
+    trendPosition.value = trendPosition.max;
+    trendPosition.disabled = chartPoints.length < 2;
+    renderTrend();
     renderFocus();
   }
 
@@ -135,6 +162,8 @@
   }
 
   form.addEventListener('change', showDraftScore);
+  trendMode.addEventListener('change', renderTrend);
+  trendPosition.addEventListener('input', inspectChat);
   form.addEventListener('submit', event => {
     event.preventDefault();
     const entry = { date: today(), habits: choiceValues() };
